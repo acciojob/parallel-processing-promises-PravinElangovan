@@ -1,37 +1,49 @@
 //your JS code here. If required.
-let opt = document.querySelector("#output");
-let btn = document.querySelector("#download-images-button");
-
-btn.addEventListener("click", () => {
-  showImage(array);
-});
-
-async function showImage(array) {
+const images = [
+  {
+    url: "https://picsum.photos/id/237/200/300",
+    alt: "Image 1",
+  },
+  {
+    url: "https://picsum.photos/id/238/200/300",
+    alt: "Image 2",
+  },
+  {
+    url: "https://picsum.photos/id/239/200/300",
+    alt: "Image 3",
+  }
   
+];
 
-  let arr = [];
+function downloadImages(images) {
+  const promises = images.map(image => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = image.url;
+      img.alt = image.alt;
+      img.onload = () => {
+        resolve(img);
+      };
+      img.onerror = () => {
+        reject(`Failed to load image's URL: ${image.url}`);
+      };
+    });
+  });
 
-	for(let x in array){
-		arr.push(await fetch(array[x].url));
-	}
-
-  Promise.all(arr)
-    .then(async (data) => {
-      let arr2 = [];
-
-      for (let x of data) {
-        arr2.push(URL.createObjectURL(await x.blob()));
-      }
-
-      return arr2;
-    },(error)=>{alert(`Failed to load image's URL: ${error}`)})
-    .then((data) => {
-      for (let x of data) {
-        let image = document.createElement("img");
-        image.src = x;
-        image.style.cssText =
-          "width:400px;height:400px;display:block;margin:10px";
-        opt.append(image);
-      }
+  Promise.all(promises)
+    .then(imgs => {
+      const output = document.getElementById('output');
+		output.innerHTML = null;
+      imgs.forEach(img => {
+        output.appendChild(img);
+      });
+    })
+    .catch(error => {
+      console.error(error);
     });
 }
+
+const button = document.getElementById('download-images-button');
+button.addEventListener('click', () => {
+  downloadImages(images);
+});
